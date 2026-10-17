@@ -17,13 +17,13 @@ module Skill
       attr_reader :session, :options
 
       # Parses the arguments with the options +define+ adds, plus the scope
-      # options (+--global+, +--project+, +--agent+, +--dir+) unless +scope+
-      # is false.
+      # options (+--global+, +--project+, +--agents+, +--dir+) unless +scope+
+      # is false, or only +--global+ and +--project+ when it is +:place+.
       # Returns the arguments left.
       def parse(banner, scope: true, &define)
         @parser = OptionParser.new do |opts|
           opts.banner = "Usage: skill #{banner}"
-          scope_options(opts) if scope
+          scope_options(opts, targets: scope != :place) if scope
           define&.call(opts)
         end
         @parser.parse(@argv)
@@ -33,12 +33,16 @@ module Skill
         @parser.to_s
       end
 
-      def scope_options(opts)
+      def scope_options(opts, targets: true)
         opts.on('-g', '--global', 'Use the home folder, even inside a project') { options[:global] = true }
         opts.on('-p', '--project', 'Use the current folder as a project, even outside one') do
           options[:global] = false
         end
-        opts.on('-a', '--agent NAME', 'Target this agent (repeatable, comma-separated, * for all)') do |value|
+        return unless targets
+
+        opts.on('-a', '--agents NAMES', '--agent NAMES',
+                'Target these agents (comma-separated, repeatable): all (detected, the default),',
+                'coding (detected coding agents, not RubyLLM), or names from `skill agents`') do |value|
           options[:agents].concat(split(value))
         end
         opts.on('-d', '--dir PATH', 'Target this folder (repeatable)') do |value|

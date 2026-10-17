@@ -35,6 +35,25 @@ class TargetsTest < SkillTest
     assert_equal %w[Codex Cursor], list.first.agents
   end
 
+  def test_groups
+    File.write(File.join(@project, 'Gemfile'), "gem 'ruby_llm'\n")
+
+    assert_equal ['app/skills', '.agents/skills'], labels(targets.resolve(agents: %w[all universal]))
+    assert_equal ['.agents/skills'], labels(targets.resolve(agents: ['coding']))
+    Dir.mkdir(File.join(@project, '.claude'))
+
+    assert_equal ['app/skills', '.claude/skills'], labels(targets.resolve(agents: ['all']))
+    assert_equal ['.claude/skills'], labels(targets.resolve(agents: ['Coding']))
+    assert_equal ['.claude/skills', 'app/skills'], labels(targets.resolve(agents: %w[coding ruby_llm]))
+  end
+
+  def test_global_groups_have_no_ruby_llm
+    FileUtils.mkdir_p(File.join(@home, '.claude'))
+
+    assert_equal ['~/.claude/skills'], labels(targets(global: true).resolve(agents: ['all']))
+    assert_equal ['~/.claude/skills'], labels(targets(global: true).resolve(agents: ['coding']))
+  end
+
   def test_dirs
     assert_equal ['vendor/skills'], labels(targets.resolve(dirs: [File.join(@project, 'vendor/skills')]))
   end

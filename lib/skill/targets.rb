@@ -2,8 +2,9 @@
 
 module Skill
   # Decides which folders a command installs to, lists, or updates: the
-  # folders of the agents named with +--agent+, the folders named with
-  # +--dir+, or else the ones the project or home folder shows signs of.
+  # folders of the agents and groups named with +--agents+, the folders
+  # named with +--dir+, or else the ones the project or home folder shows
+  # signs of.
   class Targets
     # One folder skills are installed into, and the agents that read it.
     Target = Struct.new(:path, :label, :agents, keyword_init: true)
@@ -30,6 +31,14 @@ module Skill
 
     SHARED_GLOBAL_DIRS = %w[~/.agents/skills {config}/agents/skills].freeze
     FALLBACK = 'universal'
+    RUBY_LLM = 'rubyllm'
+
+    # Names +--agents+ takes for several agents at once: +all+, every agent
+    # detected (RubyLLM's +app/skills+ included in a RubyLLM project), and
+    # +coding+, every coding agent detected, never RubyLLM. Both fall back to
+    # the shared +.agents/skills+ folder when they detect none. +*+ is every
+    # agent +skill agents+ lists.
+    GROUPS = %w[all coding *].freeze
 
     attr_reader :root, :home, :env
 
@@ -45,11 +54,12 @@ module Skill
       @global
     end
 
-    # Returns the Targets for +agents+ and +dirs+, or the detected ones when
-    # both are empty. Folders several agents share are returned once.
+    # Returns the Targets for +agents+ (names, aliases, or GROUPS) and
+    # +dirs+, or the detected ones (the +all+ group) when both are empty.
+    # Folders several agents share are returned once.
     def resolve(agents: [], dirs: [])
-      chosen = agents_named(agents)
-      list = chosen.empty? && dirs.empty? ? detected : chosen.filter_map { |agent| target_for(agent, strict: true) }
+      agents = ['all'] if agents.empty? && dirs.empty?
+      list = agents_named(agents).filter_map { |agent| target_for(agent, strict: true) }
       list += dirs.map { |dir| Target.new(path: File.expand_path(dir, base), label: dir, agents: []) }
       merge(list)
     end
@@ -60,9 +70,11 @@ module Skill
     end
 
     # Returns the agents the project or home folder shows signs of, or the
-    # shared +.agents/skills+ folder when it shows none.
-    def detected_agents
+    # shared +.agents/skills+ folder when it shows none. With +coding+,
+    # leaves RubyLLM out.
+    def detected_agents(coding: false)
       found = Agents.all.select { |agent| global? ? installed?(agent) : used_in_project?(agent) }
+      found.reject! { |agent| agent.key == RUBY_LLM } if coding
       found.empty? ? [Agents.fetch(FALLBACK)] : found
     end
 
@@ -103,13 +115,14 @@ module Skill
     end
 
     def agents_named(names)
-      return Agents.all.select { |agent| global? ? agent.global? : true } if names.include?('*')
-
-      names.map { |name| Agents.fetch(name) }.uniq
-    end
-
-    def detected
-      detected_agents.filter_map { |agent| target_for(agent) }
+      names.flat_map do |name|
+        case name.to_s.strip.downcase
+        when '*' then Agents.all.select { |agent| global? ? agent.global? : true }
+        when 'all' then detected_agents
+        when 'coding' then detected_agents(coding: true)
+        else [Agents.fetch(name)]
+        end
+      end.uniq
     end
 
     def target_for(agent, strict: false)
@@ -129,7 +142,7 @@ module Skill
     end
 
     def used_in_project?(agent)
-      return ruby_llm? if agent.key == 'rubyllm'
+      return ruby_llm? if agent.key == RUBY_LLM
       return File.directory?(File.join(root, agent.project_dir)) if agent.key == FALLBACK
 
       (PROJECT_SIGNS.fetch(agent.key, []) + own_signs(agent)).any? { |sign| File.exist?(File.join(root, sign)) }

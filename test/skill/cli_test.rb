@@ -282,6 +282,19 @@ class CLITest < SkillTest
     refute_path_exists File.join(@project, 'skills.lock')
   end
 
+  def test_agents_groups
+    status, out, err = skill('add', 'acme/skills@pdf', '--agents', 'coding')
+
+    assert_equal 0, status, err
+    assert_equal "✓ Installed pdf → .claude/skills/pdf\n  Recorded in skills.lock\n", out
+    assert_equal 0, skill('add', 'acme/skills@docx', '--agents', 'all').first
+    assert_equal ['.claude/skills', 'app/skills'], lock['docx']['targets']
+    assert_equal 0, skill('add', 'acme/skills@docx', '--agents', 'ruby_llm,cursor').first
+    assert_equal ['.agents/skills', '.claude/skills', 'app/skills'], lock['docx']['targets']
+    assert_equal 0, skill('remove', 'docx', '--agent', 'coding').first
+    assert_equal ['app/skills'], lock['docx']['targets']
+  end
+
   def test_find
     @http.route('https://skills.sh/api/search?q=pdf+tools&limit=20',
                 body: JSON.generate(skills: [

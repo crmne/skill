@@ -3,7 +3,7 @@
 module Skill
   module Commands
     # skill remove <names>: deletes skills this command installed, from
-    # every folder it recorded, or only those +--agent+ and +--dir+ name.
+    # every folder it recorded, or only those +--agents+ and +--dir+ name.
     class Remove < Command
       def run
         names = parse('remove <names> [options]') do |opts|

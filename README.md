@@ -91,7 +91,7 @@ Private repositories work with a token in `GITHUB_TOKEN` or `GH_TOKEN`.
 
 `skill` looks at your project and installs into every folder it shows signs of using:
 
-| Target | `--agent` | Project folder | Global folder | Detected by |
+| Target | `--agents` | Project folder | Global folder | Detected by |
 | --- | --- | --- | --- | --- |
 | RubyLLM | `rubyllm` | `app/skills` | none | `ruby_llm` in the Gemfile or lockfile, or an `app/skills` folder |
 | Claude Code | `claude-code` | `.claude/skills` | `~/.claude/skills` | `.claude/` or `CLAUDE.md` |
@@ -103,13 +103,25 @@ Private repositories work with a token in `GITHUB_TOKEN` or `GH_TOKEN`.
 
 When it finds none, it uses `.agents/skills`, the folder many agents share. `skill agents` lists all 80 targets. Folders several agents share get one copy.
 
-Choose instead of detecting:
+Choose instead of detecting with `--agents` (`-a`), a comma-separated list of groups and agent names:
+
+| `--agents` | Installs into |
+| --- | --- |
+| `all` | Every folder detected, RubyLLM's `app/skills` included in a RubyLLM project. The default |
+| `coding` | Every coding agent's folder detected, never RubyLLM's `app/skills` |
+| `ruby_llm` | RubyLLM's `app/skills` only |
+| `claude-code,cursor` | These agents' folders. `skill agents` lists the names |
+| `*` | Every agent `skill agents` lists |
 
 ```sh
-skill add anthropics/skills@pdf --agent rubyllm
-skill add anthropics/skills@pdf --agent claude-code,cursor
+skill add anthropics/skills@pdf --agents coding       # your coding agents, not your app
+skill add anthropics/skills@pdf --agents ruby_llm     # your app, not your coding agents
+skill add anthropics/skills@pdf --agents claude-code,cursor
+skill add anthropics/skills@pdf --agents coding,ruby_llm
 skill add anthropics/skills@pdf --dir vendor/skills
 ```
+
+`coding` and `all` fall back to `.agents/skills` when they detect nothing. `--agent` still works, as another name for `--agents`.
 
 ### Project or global
 
@@ -198,7 +210,7 @@ To move to another ref, add the skill again with it: `skill add anthropics/skill
 skill list              # installed skills, and any that were edited or are missing
 skill list --json
 skill remove pdf        # from every folder it was installed into
-skill remove pdf --agent claude-code
+skill remove pdf --agents claude-code
 ```
 
 `list` also names skill folders `skill` did not install. `remove` deletes only what `skill` installed.
