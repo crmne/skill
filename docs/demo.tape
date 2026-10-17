@@ -4,9 +4,10 @@
 #   SKILL_GEM=/tmp/skill.gem vhs docs/demo.tape
 #
 # It runs `gem exec skill` against GitHub and skills.sh in a throwaway
-# home folder and gem path, first globally, then in a new Rails app. The
-# hidden setup installs Rails and RubyLLM there and makes one app first,
-# so the recorded `rails new` and `bundle add` are quick, and it removes
+# home folder, gem path, and empty environment: first in the home folder, outside any project,
+# where it installs globally, then in a new Rails app. The hidden setup
+# installs Rails and RubyLLM there and makes one app first, so the
+# recorded `rails new` and `bundle add` are quick, and it removes
 # RDoc's RubyGems plugin from that gem path, which would print an empty
 # "Done installing documentation" line on every `gem exec`. Until skill
 # is on RubyGems, `gem exec` installs the gem file SKILL_GEM names, copied
@@ -23,7 +24,7 @@ Set Width 1200
 Set Height 880
 Set Padding 32
 Set Framerate 24
-Set TypingSpeed 45ms
+Set TypingSpeed 38ms
 Set CursorBlink false
 Set WindowBar Colorful
 Set WindowBarSize 40
@@ -33,8 +34,8 @@ Set WaitTimeout 30s
 Set Theme { "name": "Live Wire", "background": "#0b0b0c", "foreground": "#e7e7ea", "cursor": "#e7e7ea", "selection": "#2a2a2e", "black": "#0b0b0c", "red": "#ff6b6b", "green": "#5ee38a", "yellow": "#f5c451", "blue": "#6cb6ff", "magenta": "#c49bff", "cyan": "#5fd7d7", "white": "#c9c9cf", "brightBlack": "#6e6e76", "brightRed": "#ff8787", "brightGreen": "#8af0aa", "brightYellow": "#ffd77a", "brightBlue": "#94caff", "brightMagenta": "#d7b8ff", "brightCyan": "#87e8e8", "brightWhite": "#ffffff" }
 
 Hide
-Type `export PATH="$(ruby -e 'print RbConfig::CONFIG["bindir"]'):/usr/bin:/bin" HOME="$(mktemp -d)"` Enter
-Type `export GEM_HOME="$HOME/.gem" GEM_PATH="$HOME/.gem" PATH="$HOME/.gem/bin:$PATH" PS1='\[\e[90m\]\w\[\e[0m\] \[\e[32m\]›\[\e[0m\] '` Enter
+Type `exec env -i TERM="$TERM" LANG=C.UTF-8 SKILL_GEM="$SKILL_GEM" HOME="$(mktemp -d)" PATH="$(ruby -e 'print RbConfig::CONFIG["bindir"]'):/usr/bin:/bin" bash --noprofile --norc` Enter
+Type `cd && export GEM_HOME="$HOME/.gem" GEM_PATH="$HOME/.gem" PATH="$HOME/.gem/bin:$PATH" PS1='\[\e[90m\]\w\[\e[0m\] \[\e[32m\]›\[\e[0m\] '` Enter
 Type `gem install rails ruby_llm --no-document --silent && rm -f "$GEM_HOME/plugins/rdoc_plugin.rb"` Enter
 Wait@300s
 Type `(cd "$(mktemp -d)" && rails new warm --minimal --quiet && cd warm && bundle add ruby_llm --quiet)` Enter
@@ -43,24 +44,33 @@ Type `mkdir -p ~/.claude ~/demo-app && cp "$SKILL_GEM" ~ && cp "$SKILL_GEM" ~/de
 Wait
 Show
 
-Sleep 600ms
+Sleep 300ms
 Type "gem exec skill find pdf --limit 3"
 Sleep 400ms
 Enter
+Sleep 300ms
+Hide
 Wait
-Sleep 2.5s
+Show
+Sleep 2s
 
-Type "gem exec skill add anthropics/skills@pdf --global"
+Type "gem exec skill add anthropics/skills@pdf"
 Sleep 400ms
 Enter
+Sleep 300ms
+Hide
 Wait
-Sleep 2.5s
+Show
+Sleep 2s
 
-Type "gem exec skill list --global"
+Type "gem exec skill list"
 Sleep 400ms
 Enter
+Sleep 300ms
+Hide
 Wait
-Sleep 2.5s
+Show
+Sleep 2s
 
 Ctrl+L
 Sleep 300ms
@@ -68,26 +78,48 @@ Type "# Or in a Rails app that uses RubyLLM"
 Sleep 300ms
 Enter
 Type "rails new demo-app --minimal --quiet"
-Sleep 300ms
+Sleep 400ms
 Enter
+Sleep 300ms
+Hide
 Wait
+Show
 Sleep 600ms
+
 Type "cd demo-app && bundle add ruby_llm"
-Sleep 300ms
+Sleep 400ms
 Enter
+Sleep 300ms
+Hide
 Wait
+Show
 Sleep 1s
 
 Type "gem exec skill add anthropics/skills@pdf"
 Sleep 400ms
 Enter
+Sleep 300ms
+Hide
 Wait
-Sleep 2.5s
+Show
+Sleep 2s
 
 Type "gem exec skill list"
 Sleep 400ms
 Enter
+Sleep 300ms
+Hide
 Wait
+Show
+Sleep 1.5s
+
+Type "ls app/skills app/skills/pdf"
+Sleep 400ms
+Enter
+Sleep 300ms
+Hide
+Wait
+Show
 Sleep 2.5s
 
 Ctrl+L
@@ -95,5 +127,8 @@ Sleep 300ms
 Type "cat skills.lock"
 Sleep 400ms
 Enter
+Sleep 300ms
+Hide
 Wait
-Sleep 4s
+Show
+Sleep 3.5s
