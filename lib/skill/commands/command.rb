@@ -17,7 +17,8 @@ module Skill
       attr_reader :session, :options
 
       # Parses the arguments with the options +define+ adds, plus the scope
-      # options (+--global+, +--agent+, +--dir+) unless +scope+ is false.
+      # options (+--global+, +--project+, +--agent+, +--dir+) unless +scope+
+      # is false.
       # Returns the arguments left.
       def parse(banner, scope: true, &define)
         @parser = OptionParser.new do |opts|
@@ -33,7 +34,10 @@ module Skill
       end
 
       def scope_options(opts)
-        opts.on('-g', '--global', 'Use the home folder instead of the project') { options[:global] = true }
+        opts.on('-g', '--global', 'Use the home folder, even inside a project') { options[:global] = true }
+        opts.on('-p', '--project', 'Use the current folder as a project, even outside one') do
+          options[:global] = false
+        end
         opts.on('-a', '--agent NAME', 'Target this agent (repeatable, comma-separated, * for all)') do |value|
           options[:agents].concat(split(value))
         end
@@ -43,7 +47,7 @@ module Skill
       end
 
       def workspace
-        session.workspace(global: options[:global] ? true : false)
+        session.workspace(global: options[:global])
       end
 
       # Returns the target folders the scope options name, or +nil+ when

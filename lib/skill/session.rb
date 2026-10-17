@@ -50,8 +50,9 @@ module Skill
       @input.gets.to_s.strip.match?(/\Ay(?:es)?\z/i)
     end
 
-    # Returns the Workspace for the project, or the home folder with +global+.
-    def workspace(global: false)
+    # Returns the Workspace for the project, or the home folder with
+    # +global+, or with +global+ +nil+ whichever +cwd+ is in.
+    def workspace(global: nil)
       @workspace ||= Workspace.open(cwd: cwd, home: home, env: env, global: global, limits: limits)
     end
 

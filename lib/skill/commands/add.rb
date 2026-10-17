@@ -46,7 +46,12 @@ module Skill
         Installer.new.install(copies)
         copies.each { |copy| workspace.lock[copy.name] = copy.entry }
         workspace.lock.save
-        copies.each { |copy| say done("Installed #{style.bold(copy.name)} → #{copy.labels.join(', ')}") }
+        report(copies)
+      end
+
+      def report(copies)
+        scope = workspace.global? ? style.dim(' (global)') : ''
+        copies.each { |copy| say done("Installed #{style.bold(copy.name)} → #{copy.labels.join(', ')}#{scope}") }
         say style.dim("  Recorded in #{workspace.display(workspace.lock.path)}")
       end
 

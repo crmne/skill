@@ -4,9 +4,14 @@
 #   SKILL_GEM=/tmp/skill.gem vhs docs/demo.tape
 #
 # It runs `gem exec skill` against GitHub and skills.sh in a throwaway
-# home folder and gem path. Until skill is on RubyGems, `gem exec` installs
-# the gem file SKILL_GEM names, copied into the demo app. It needs Geist
-# Mono installed where fontconfig finds it.
+# home folder and gem path, first globally, then in a new Rails app. The
+# hidden setup installs Rails and RubyLLM there and makes one app first,
+# so the recorded `rails new` and `bundle add` are quick, and it removes
+# RDoc's RubyGems plugin from that gem path, which would print an empty
+# "Done installing documentation" line on every `gem exec`. Until skill
+# is on RubyGems, `gem exec` installs the gem file SKILL_GEM names, copied
+# into the folders the demo runs it in. It needs Geist Mono installed
+# where fontconfig finds it.
 
 Output docs/demo.gif
 
@@ -29,9 +34,12 @@ Set Theme { "name": "Live Wire", "background": "#0b0b0c", "foreground": "#e7e7ea
 
 Hide
 Type `export PATH="$(ruby -e 'print RbConfig::CONFIG["bindir"]'):/usr/bin:/bin" HOME="$(mktemp -d)"` Enter
-Type `export GEM_HOME="$HOME/.gem" GEM_PATH="$HOME/.gem" PS1='\[\e[90m\]\w\[\e[0m\] \[\e[32m\]›\[\e[0m\] '` Enter
-Type `mkdir -p ~/demo-app/app/models ~/demo-app/config && cd ~/demo-app && cp "$SKILL_GEM" .` Enter
-Type `printf 'source "https://rubygems.org"\n\ngem "rails", "~> 8.1"\ngem "ruby_llm"\n' > Gemfile && clear` Enter
+Type `export GEM_HOME="$HOME/.gem" GEM_PATH="$HOME/.gem" PATH="$HOME/.gem/bin:$PATH" PS1='\[\e[90m\]\w\[\e[0m\] \[\e[32m\]›\[\e[0m\] '` Enter
+Type `gem install rails ruby_llm --no-document --silent && rm -f "$GEM_HOME/plugins/rdoc_plugin.rb"` Enter
+Wait@300s
+Type `(cd "$(mktemp -d)" && rails new warm --minimal --quiet && cd warm && bundle add ruby_llm --quiet)` Enter
+Wait@300s
+Type `mkdir -p ~/.claude ~/demo-app && cp "$SKILL_GEM" ~ && cp "$SKILL_GEM" ~/demo-app && cd ~ && clear` Enter
 Wait
 Show
 
@@ -42,11 +50,39 @@ Enter
 Wait
 Sleep 2.5s
 
+Type "gem exec skill add anthropics/skills@pdf --global"
+Sleep 400ms
+Enter
+Wait
+Sleep 2.5s
+
+Type "gem exec skill list --global"
+Sleep 400ms
+Enter
+Wait
+Sleep 2.5s
+
+Ctrl+L
+Sleep 300ms
+Type "# Or in a Rails app that uses RubyLLM"
+Sleep 300ms
+Enter
+Type "rails new demo-app --minimal --quiet"
+Sleep 300ms
+Enter
+Wait
+Sleep 600ms
+Type "cd demo-app && bundle add ruby_llm"
+Sleep 300ms
+Enter
+Wait
+Sleep 1s
+
 Type "gem exec skill add anthropics/skills@pdf"
 Sleep 400ms
 Enter
 Wait
-Sleep 3s
+Sleep 2.5s
 
 Type "gem exec skill list"
 Sleep 400ms
@@ -61,9 +97,3 @@ Sleep 400ms
 Enter
 Wait
 Sleep 4s
-
-Type "gem exec skill update"
-Sleep 400ms
-Enter
-Wait
-Sleep 3.5s

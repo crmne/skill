@@ -111,10 +111,27 @@ skill add anthropics/skills@pdf --agent claude-code,cursor
 skill add anthropics/skills@pdf --dir vendor/skills
 ```
 
-`--global` (`-g`) installs into your home folder instead of the project, for the agents you have installed:
+### Project or global
+
+Inside a project, `skill` installs into the project. Outside one, it installs globally, into your home folder, for the agents you have installed:
 
 ```sh
-skill add anthropics/skills@pdf --global
+cd ~
+skill add anthropics/skills@pdf
+```
+
+```
+✓ Installed pdf → ~/.claude/skills/pdf (global)
+  Recorded in ~/.local/state/skill/skills.lock
+```
+
+A project is the nearest folder from where you run `skill` up that holds a `skills.lock`, a `Gemfile`, a `gems.rb`, a `.git`, or a `package.json`, or else an agent's folder or instructions (`.claude`, `.agents`, `.cursor`, `AGENTS.md`, `CLAUDE.md`, and the like). Your home folder never counts, since agents keep their global folders there. `list`, `update`, and `remove` decide the same way.
+
+Choose instead of deciding:
+
+```sh
+skill add anthropics/skills@pdf --global    # -g: the home folder, even inside a project
+skill add anthropics/skills@pdf --project   # -p: this folder as a project, even outside one
 ```
 
 Once installed in `app/skills`, RubyLLM finds a skill by name:
@@ -210,7 +227,7 @@ A skill's instructions steer a model and its scripts run with whatever your sand
 * **Sizes are capped:** 64 MB downloaded, 256 MB and 20,000 files extracted, 16 MB and 2,000 files per skill. Raise them for sources you trust with `SKILL_MAX_DOWNLOAD_BYTES`, `SKILL_MAX_EXTRACT_BYTES`, `SKILL_MAX_EXTRACT_FILES`, `SKILL_MAX_SKILL_BYTES`, and `SKILL_MAX_SKILL_FILES`.
 * **Executable bits are dropped,** with a warning naming the files, unless you pass `--keep-executable`. RubyLLM runs a skill's scripts through an interpreter, so they need none.
 * **Installs are atomic.** Copies are built beside their folders and swapped in once all are ready. A failure leaves everything as it was.
-* **Skills stay where they belong.** `add`, `update`, and `remove` write only inside the project, or with `--global` inside your home folder (and any agent folder you moved elsewhere with its environment variable). Folders are checked with `..` and symbolic links resolved, so a `skills.lock` entry, a `--dir`, or a linked folder that leads elsewhere is refused with an error naming it, and nothing changes.
+* **Skills stay where they belong.** `add`, `update`, and `remove` write only inside the project, or when global inside your home folder (and any agent folder you moved elsewhere with its environment variable). Folders are checked with `..` and symbolic links resolved, so a `skills.lock` entry, a `--dir`, or a linked folder that leads elsewhere is refused with an error naming it, and nothing changes.
 * **Your edits are yours.** A skill edited since it was installed, or a folder `skill` did not install, is replaced or removed only with `--force`.
 * **No downloads at run time.** `skill` reaches the network only in `add`, `update`, and `find`. What it installs is plain files in your project.
 * **GitHub without its API.** Refs come from git's own HTTP endpoint and files from one archive of the exact commit, so there is no rate limit and no git needed. A token, when set, goes only to GitHub.
@@ -236,6 +253,7 @@ A skill's instructions steer a model and its scripts run with whatever your sand
 | Lockfile | Folder hash, no commit | Source, ref, commit, digest, folders |
 | Updating | Installs the new version | Shows the commits and files, waits for yes; commits never move, moved tags are called out |
 | Installs | Symlinks to one copy, or copies | Copies, swapped in atomically |
+| Project or global | Asks on a terminal, else the project | The project when there is one, else global, and says which |
 | Hosts | GitHub, GitLab, any git, well-known URLs | GitHub and local folders |
 
 The agent folders and discovery rules follow [vercel-labs/skills](https://github.com/vercel-labs/skills) (MIT), so both tools install a skill to the same place.

@@ -6,29 +6,45 @@ module Skill
   # it would replace or delete is still what it installed.
   class Workspace
     ROOT_MARKERS = %w[skills.lock Gemfile gems.rb .git package.json].freeze
+    AGENT_MARKERS = %w[.agents .claude .codex .cursor .gemini .windsurf AGENTS.md CLAUDE.md GEMINI.md].freeze
 
     attr_reader :root, :targets, :lock
 
     # Opens the project around +cwd+, or the home folder with +global+.
+    # With +global+ +nil+, uses the home folder when +cwd+ is in no
+    # project, the way a person running it there expects.
     def self.open(cwd:, home:, env:, global:, limits:)
-      root = global ? home : project_root(cwd, home)
+      project = project_root(cwd, home)
+      global = project.nil? if global.nil?
+      root = global ? home : project || cwd
       lock = global ? Lockfile.global_path(env: env, home: home) : File.join(root, Lockfile::NAME)
       new(root: root, targets: Targets.new(root: root, home: home, env: env, global: global),
           lock: Lockfile.new(lock), limits: limits)
     end
 
-    # Returns the nearest folder above +cwd+, up to +home+, holding a
-    # lockfile, a Gemfile, a git repository, or a package.json, or +cwd+.
+    # Returns the nearest folder from +cwd+ up holding a lockfile, a
+    # Gemfile, a git repository, or a package.json, else the nearest
+    # holding an agent's folder or instructions (+.claude+, +AGENTS.md+...),
+    # else +nil+. The home folder, where agents keep their global folders,
+    # is never a project, and the search stops there.
     def self.project_root(cwd, home)
+      agent_folder = nil
       directory = cwd
-      loop do
+      until directory == home
         return directory if ROOT_MARKERS.any? { |marker| File.exist?(File.join(directory, marker)) }
 
+        agent_folder ||= directory if AGENT_MARKERS.any? { |marker| File.exist?(File.join(directory, marker)) }
         parent = File.dirname(directory)
-        return cwd if parent == directory || directory == home
+        break if parent == directory
 
         directory = parent
       end
+      agent_folder
+    end
+
+    # Returns whether this is the home folder rather than a project.
+    def global?
+      targets.global?
     end
 
     def initialize(root:, targets:, lock:, limits:)
