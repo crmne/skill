@@ -1,0 +1,46 @@
+plugins:
+  - rubocop-minitest
+  - rubocop-rake
+
+AllCops:
+  TargetRubyVersion: 3.1
+  NewCops: enable
+  SuggestExtensions: false
+
+Layout/LineLength:
+  Max: 120
+
+Metrics/ClassLength:
+  Max: 130
+  Exclude:
+    - test/**/*
+
+Metrics/ModuleLength:
+  Exclude:
+    - lib/skill/agents.rb
+
+Metrics/MethodLength:
+  Max: 20
+  Exclude:
+    - test/**/*
+
+Metrics/AbcSize:
+  Max: 35
+  Exclude:
+    - test/**/*
+
+Metrics/CyclomaticComplexity:
+  Max: 12
+
+Metrics/PerceivedComplexity:
+  Max: 12
+
+Metrics/ParameterLists:
+  CountKeywordArgs: false
+
+Minitest/MultipleAssertions:
+  Enabled: false
+
+Style/Documentation:
+  Exclude:
+    - test/**/*
