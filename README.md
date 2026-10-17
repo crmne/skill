@@ -7,6 +7,8 @@
 [![CI](https://github.com/crmne/skill/actions/workflows/ci.yml/badge.svg)](https://github.com/crmne/skill/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
+<img src="docs/demo.gif" alt="gem exec skill finds the pdf skill on skills.sh, installs it into app/skills, lists it, shows skills.lock, and reports it up to date" width="800">
+
 </div>
 
 ---
@@ -14,7 +16,8 @@
 [Agent Skills](https://agentskills.io/specification) are folders of instructions, scripts, and reference files that teach a model a workflow. People publish them in GitHub repositories and plugin marketplaces. `skill` copies the ones you pick into the folder your app or agent reads them from, records where each came from, and shows you what changes before it updates them.
 
 ```sh
-gem exec skill add anthropics/skills@pdf
+gem exec skill find pdf                    # search skills.sh
+gem exec skill add anthropics/skills@pdf   # install one
 ```
 
 ```
