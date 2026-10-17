@@ -224,7 +224,15 @@ A skill's instructions steer a model and its scripts run with whatever your sand
 
 * **Every `SKILL.md` is checked** against the [specification](https://agentskills.io/specification) with the same rules as RubyLLM: front matter with a `name` of lowercase letters, digits, and single hyphens, at most 64 characters, and a `description` of at most 1,024. Invalid skills are listed and never installed.
 * **Archives are extracted defensively.** A path that is absolute, holds `..`, or leaves its folder fails the whole download. Links are never written or followed, and a skill holding one is refused.
-* **Sizes are capped:** 64 MB downloaded, 256 MB and 20,000 files extracted, 16 MB and 2,000 files per skill. Raise them for sources you trust with `SKILL_MAX_DOWNLOAD_BYTES`, `SKILL_MAX_EXTRACT_BYTES`, `SKILL_MAX_EXTRACT_FILES`, `SKILL_MAX_SKILL_BYTES`, and `SKILL_MAX_SKILL_FILES`.
+* **Sizes are capped.** GitHub sends a whole commit as one archive, so the download and extraction limits fit large repositories like `crmne/ruby_llm` and `heygen-com/hyperframes`, and both stream to disk rather than memory. Only the skills you pick are installed, so their limits stay tight. Raise any of them for sources you trust:
+
+  | Limit | Default | Variable |
+  | --- | --- | --- |
+  | Download | 512 MB | `SKILL_MAX_DOWNLOAD_BYTES` |
+  | Extracted archive | 2 GB | `SKILL_MAX_EXTRACT_BYTES` |
+  | Files in the archive | 100,000 | `SKILL_MAX_EXTRACT_FILES` |
+  | One skill | 16 MB | `SKILL_MAX_SKILL_BYTES` |
+  | Files in one skill | 2,000 | `SKILL_MAX_SKILL_FILES` |
 * **Executable bits are dropped,** with a warning naming the files, unless you pass `--keep-executable`. RubyLLM runs a skill's scripts through an interpreter, so they need none.
 * **Installs are atomic.** Copies are built beside their folders and swapped in once all are ready. A failure leaves everything as it was.
 * **Skills stay where they belong.** `add`, `update`, and `remove` write only inside the project, or when global inside your home folder (and any agent folder you moved elsewhere with its environment variable). Folders are checked with `..` and symbolic links resolved, so a `skills.lock` entry, a `--dir`, or a linked folder that leads elsewhere is refused with an error naming it, and nothing changes.
