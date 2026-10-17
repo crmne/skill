@@ -90,7 +90,6 @@ jobs:
     environment: rubygems
     permissions:
       contents: read
-      id-token: write
     steps:
       - uses: ruby/setup-ruby@v1
         with:
@@ -99,13 +98,17 @@ jobs:
         with:
           name: gem
           path: pkg
-      - name: Get a short-lived RubyGems key through trusted publishing
-        uses: rubygems/configure-rubygems-credentials@v2.1.0
       - name: Push gem
+        env:
+          GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_AUTH_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
-          output=$(gem push "pkg/skill-${{ needs.validate.outputs.version }}.gem" 2>&1) || {
+          if [ -z "$GEM_HOST_API_KEY" ]; then
+            echo "RUBYGEMS_AUTH_TOKEN is not configured." >&2
+            exit 1
+          fi
+          output=$(gem push --host https://rubygems.org "pkg/skill-${{ needs.validate.outputs.version }}.gem" 2>&1) || {
             echo "$output"
             if echo "$output" | grep -qi "Repushing of gem versions is not allowed"; then
               exit 0

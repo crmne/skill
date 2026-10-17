@@ -133,7 +133,7 @@ Reviewers treat either problem in a pull request as a blocker.
 1. Bump `Skill::VERSION` in `lib/skill/version.rb`.
 2. Write `packaging/release-notes/vX.Y.Z.md`, add the version to `CHANGELOG.md`, and commit them with the version bump.
 3. Tag `vX.Y.Z` on `main`, push the tag, and publish a GitHub release from it with `gh release create vX.Y.Z --verify-tag --notes-file packaging/release-notes/vX.Y.Z.md`.
-4. Publishing the release runs `.github/workflows/release.yml`: it checks the tag, version, branch, and notes, runs the tests, builds the gem, and pushes it to RubyGems through trusted publishing (OIDC, the `rubygems` environment). No API key is stored.
+4. Publishing the release runs `.github/workflows/release.yml`: it checks the tag, version, branch, and notes, runs the tests, builds the gem, and pushes it to RubyGems in the `rubygems` environment with a RubyGems API key, the `RUBYGEMS_AUTH_TOKEN` repository secret.
 
 <!-- github-automation: release-notes -->
 ## Releases
