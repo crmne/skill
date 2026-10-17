@@ -25,11 +25,11 @@ class CLITest < SkillTest
     status, out, err = skill('add', 'acme/skills@pdf')
 
     assert_equal 0, status, err
-    assert_match(%r{Installed pdf into app/skills/pdf, \.claude/skills/pdf}, out)
+    assert_equal "✓ Installed pdf → app/skills/pdf, .claude/skills/pdf\n  Recorded in skills.lock\n", out
     assert File.file?(File.join(installed('app/skills'), 'SKILL.md'))
     assert File.file?(File.join(installed('.claude/skills'), 'scripts/fill.py'))
     refute File.executable?(File.join(installed('app/skills'), 'scripts/fill.py'))
-    assert_match(%r{installed without the executable bit: scripts/fill.py}, err)
+    assert_equal "! pdf: dropped the executable bit from 1 file (use --keep-executable)\n", err
 
     entry = lock['pdf']
 
@@ -53,7 +53,7 @@ class CLITest < SkillTest
     assert_equal 0, status, err
     assert_match(%r{Skipping skills/broken}, err)
     assert_equal %w[docx pdf], lock.keys
-    assert_match(%r{Installed docx into \.claude/skills/docx}, out)
+    assert_match(%r{✓ Installed docx → \.claude/skills/docx}, out)
     refute_path_exists File.join(@project, 'app/skills')
   end
 
@@ -126,7 +126,7 @@ class CLITest < SkillTest
     status, out, = skill('update')
 
     assert_equal 0, status
-    assert_match(/pdf: up to date \(main at #{@first[0, 12]}\)/, out)
+    assert_equal "✓ pdf up to date (main at #{@first[0, 12]})\n", out
     assert_equal(1, @http.requests.count { |url, _| url.include?('codeload') })
   end
 
@@ -176,8 +176,8 @@ class CLITest < SkillTest
     status, out, = skill('update', '--yes')
 
     assert_equal 0, status
-    assert_match(/pdf: pinned to #{@first[0, 12]}, skipped/, out)
-    assert_match(/docx: up to date \(v1/, out)
+    assert_match(/· pdf pinned to #{@first[0, 12]}, skipped/, out)
+    assert_match(/✓ docx up to date \(v1/, out)
     assert_equal @first, lock['pdf']['commit']
   end
 
@@ -222,7 +222,7 @@ class CLITest < SkillTest
     status, out, = skill('list')
 
     assert_equal 0, status
-    assert_match(%r{pdf  acme/skills \(branch at #{@first[0, 12]}\)  \(edited\)}, out)
+    assert_match(%r{\Apdf  acme/skills  branch #{@first[0, 12]}  \.claude/skills, app/skills  edited$}, out)
     assert_match(%r{Not installed by skill:\n  \.claude/skills/mine}, out)
 
     _status, json, = skill('list', '--json')
@@ -243,7 +243,7 @@ class CLITest < SkillTest
     status, out, = skill('remove', 'pdf', '--agent', 'claude')
 
     assert_equal 0, status
-    assert_match(%r{Removed pdf from \.claude/skills/pdf}, out)
+    assert_match(%r{✓ Removed pdf from \.claude/skills/pdf}, out)
     assert_equal ['app/skills'], lock['pdf']['targets']
     refute_path_exists installed('.claude/skills')
 
@@ -274,7 +274,7 @@ class CLITest < SkillTest
                              env: { 'XDG_STATE_HOME' => File.join(@home, 'state') })
 
     assert_equal 0, status, err
-    assert_match(%r{Installed pdf into ~/\.claude/skills/pdf}, out)
+    assert_match(%r{✓ Installed pdf → ~/\.claude/skills/pdf}, out)
     assert File.file?(File.join(@home, '.claude/skills/pdf/SKILL.md'))
     global = JSON.parse(File.read(File.join(@home, 'state/skill/skills.lock')))['skills']
 

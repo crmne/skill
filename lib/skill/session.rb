@@ -20,12 +20,24 @@ module Skill
       @out.puts text
     end
 
+    # Prints a warning on the error stream: "! " and +text+, yellow on a
+    # terminal.
     def warn(text)
-      @err.puts "warning: #{text}"
+      @err.puts err_style.yellow("! #{text}")
     end
 
     def error(text)
-      @err.puts "skill: #{text}"
+      @err.puts "#{err_style.red('skill:')} #{text}"
+    end
+
+    # Returns the Style for standard output.
+    def style
+      @style ||= Style.for(@out, env)
+    end
+
+    # Returns the Style for the error stream.
+    def err_style
+      @err_style ||= Style.for(@err, env)
     end
 
     # Asks +question+ on a terminal. Returns +false+ without asking when

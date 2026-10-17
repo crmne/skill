@@ -54,6 +54,15 @@ module Skill
         workspace.resolve(agents: options[:agents], dirs: options[:dirs])
       end
 
+      def style
+        session.style
+      end
+
+      # Returns "✓ " and +text+, the check green on a terminal.
+      def done(text)
+        "#{style.green('✓')} #{text}"
+      end
+
       def say(text = '')
         session.say(text)
         0

@@ -24,10 +24,13 @@ module Skill
       def show(query, results)
         return say("No skills found for #{query.inspect}.") if results.empty?
 
-        width = results.map { |result| result.name.length }.max
-        results.each do |result|
-          say "#{result.name.ljust(width)}  #{result.source}  #{installs(result.installs)}".rstrip
-          say "#{' ' * width}  #{result.command}"
+        rows = results.map { |result| [result.name, result.source, installs(result.installs), result.command] }
+        width, sources, counts = (0..2).map { |column| rows.map { |row| row[column].length }.max }
+        rows.each do |name, source, count, command|
+          line = "#{style.bold(name.ljust(width))}  #{style.dim(source.ljust(sources))}"
+          line += "  #{style.dim(count.rjust(counts))}" unless count.empty?
+          say line.rstrip
+          say "#{' ' * width}  #{style.dim(command)}"
         end
         0
       end

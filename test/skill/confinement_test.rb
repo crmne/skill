@@ -117,7 +117,7 @@ class ConfinementTest < SkillTest
     status, out, = skill('list')
 
     assert_equal 0, status
-    assert_match(/\(outside the project\)/, out)
+    assert_match(/  outside the project$/, out)
   end
 
   def test_global_targets_stay_in_the_home_folder

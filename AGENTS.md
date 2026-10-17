@@ -17,6 +17,7 @@ Plain Ruby (>= 3.1), no runtime dependencies: Net::HTTP, `Gem::Package::TarReade
 | `lib/skill/cli.rb` | Dispatches subcommands, maps errors to exit statuses (1 failure, 2 usage) |
 | `lib/skill/commands/` | One class per subcommand (`Add`, `Update`, `Remove`, `List`, `Find`, `Agents`) and `Selection`, which picks the skills `add` installs |
 | `lib/skill/session.rb` | One run: streams, environment, prompts, downloads, cleanup |
+| `lib/skill/style.rb` | Color for a terminal, off for pipes, `NO_COLOR`, and `TERM=dumb` |
 | `lib/skill/workspace.rb` | The project or home folder: its `Targets` and `Lockfile`, and the edited/not-ours checks |
 | `lib/skill/source.rb` | Parses `owner/repo`, `owner/repo@skill`, `owner/repo/path`, `#ref`, GitHub URLs, local paths |
 | `lib/skill/github.rb` | Resolves refs through git's smart HTTP advertisement and downloads commit tarballs, no API |

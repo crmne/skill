@@ -21,8 +21,8 @@ gem exec skill add anthropics/skills@pdf   # install one
 ```
 
 ```
-Installed pdf into app/skills/pdf, .claude/skills/pdf
-Recorded in skills.lock.
+✓ Installed pdf → app/skills/pdf, .claude/skills/pdf
+  Recorded in skills.lock
 ```
 
 It is the Ruby counterpart of [`npx skills`](https://github.com/vercel-labs/skills): the same sources, the same agent folders, the same [skills.sh](https://skills.sh) directory. [RubyLLM](https://rubyllm.com) is a first-class target, and it adds a lockfile with commits, updates that wait for your yes, and refusals instead of guesses. No runtime dependencies, Ruby 3.1 or newer, and it starts in about the time Ruby itself takes.
@@ -34,6 +34,14 @@ With RubyGems 3.5 or newer (Ruby 3.3 ships it), run it without installing:
 ```sh
 gem exec skill add owner/repo
 ```
+
+`gem exec` asks RubyGems for the newest version on every run. Pass `--conservative` to use the version you already have, without the lookup:
+
+```sh
+gem exec --conservative skill list
+```
+
+Depending on your RDoc version, `gem exec` may print `Done installing documentation for  after 0 seconds` before the output, even when it installed nothing. That line comes from RDoc's RubyGems hook, not from `skill`, and is harmless.
 
 Or install it once:
 
@@ -217,6 +225,7 @@ A skill's instructions steer a model and its scripts run with whatever your sand
 | `INSTALL_INTERNAL_SKILLS` | Include skills whose front matter sets `metadata.internal: true` in `--all` |
 | `SKILLS_API_URL` | Another server with the skills.sh search endpoint |
 | `SKILL_MAX_*` | The limits above |
+| `NO_COLOR` | Plain output on a terminal too. Output that is not a terminal is always plain |
 
 ## Compared with `npx skills`
 

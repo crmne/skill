@@ -51,7 +51,8 @@ module Skill
         else
           workspace.lock[name] = entry.merge('targets' => remaining)
         end
-        say "Removed #{name} from #{folders.map { |folder| workspace.display(File.join(folder, name)) }.join(', ')}"
+        say done("Removed #{style.bold(name)} from " \
+                 "#{folders.map { |folder| workspace.display(File.join(folder, name)) }.join(', ')}")
       end
     end
   end

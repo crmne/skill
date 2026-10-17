@@ -23,11 +23,28 @@ module Skill
       def installed(rows)
         return say("No skills installed with skill in #{workspace.display(workspace.root)}.") if rows.empty?
 
-        width = rows.map { |name, _entry, _status| name.length }.max
-        rows.each do |name, entry, state|
-          say "#{name.ljust(width)}  #{Workspace.describe(entry)}#{"  (#{state})" unless state == 'ok'}"
-          say "#{' ' * width}  in #{entry['targets'].join(', ')}"
+        table = rows.map do |name, entry, state|
+          [name, source(entry), version(entry), entry['targets'].join(', '), state == 'ok' ? '' : state]
         end
+        widths = (0..3).map { |column| table.map { |row| row[column].length }.max }
+        table.each { |row| say row_line(row, widths) }
+      end
+
+      def row_line(row, widths)
+        name, source, version, targets, state = row.each_with_index.map do |cell, column|
+          column < 4 && column != 3 ? cell.ljust(widths[column]) : cell
+        end
+        line = "#{style.bold(name)}  #{style.dim(source)}  #{style.dim(version)}  #{targets}"
+        line += "  #{style.yellow(state)}" unless state.empty?
+        line
+      end
+
+      def source(entry)
+        entry['ref'] ? "#{entry['source']}##{entry['ref']}" : entry['source']
+      end
+
+      def version(entry)
+        entry['commit'] ? "#{entry['ref_type']} #{entry['commit'][0, 12]}" : entry['ref_type'].to_s
       end
 
       def unmanaged
@@ -43,7 +60,7 @@ module Skill
         return if folders.empty?
 
         say
-        say 'Not installed by skill:'
+        say style.dim('Not installed by skill:')
         folders.each { |folder| say "  #{folder}" }
       end
 

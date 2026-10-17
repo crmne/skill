@@ -47,7 +47,8 @@ module Skill
         source = Source.parse(source_label, root: workspace.root, ref: ref)
         resolution = session.fetcher.resolve(source) if source.github?
         if resolution && names.all? { |name| lock[name]['commit'] == resolution.commit }
-          names.each { |name| say "#{name}: up to date (#{resolution.label} at #{resolution.commit[0, 12]})" }
+          at = style.dim("(#{resolution.label} at #{resolution.commit[0, 12]})")
+          names.each { |name| say done("#{style.bold(name)} up to date #{at}") }
           return []
         end
 
@@ -57,7 +58,10 @@ module Skill
       end
 
       def pinned(names)
-        names.each { |name| say "#{name}: pinned to #{workspace.lock[name]['commit'][0, 12]}, skipped" }
+        names.each do |name|
+          commit = workspace.lock[name]['commit'][0, 12]
+          say "#{style.dim('·')} #{style.bold(name)} pinned #{style.dim("to #{commit}, skipped")}"
+        end
         []
       end
 
@@ -122,7 +126,7 @@ module Skill
       end
 
       def apply(changes)
-        return say('Nothing to update.') if changes.empty?
+        return 0 if changes.empty?
 
         changes.each { |change| show(change) }
         return 0 if options[:dry_run]
@@ -133,7 +137,7 @@ module Skill
         Installer.new.install(changed.map(&:copy))
         changes.each { |change| workspace.lock[change.name] = change.entry }
         workspace.lock.save
-        say "Updated #{changes.map(&:name).join(', ')}."
+        say done("Updated #{changes.map { |change| style.bold(change.name) }.join(', ')}")
       end
 
       def confirmed?(count)
@@ -147,13 +151,17 @@ module Skill
 
       def show(change)
         range = [change.from, change.to].compact.map { |sha| sha[0, 12] }.join('..')
-        say "#{change.name}: #{change.source}#{" #{range}" unless range.empty?}"
-        say "  #{compare_url(change)}" if compare_url(change)
-        return say('  no file changes') if change.diff.empty?
+        say "#{style.bold(change.name)}: #{change.source}#{style.dim(" #{range}") unless range.empty?}"
+        say style.dim("  #{compare_url(change)}") if compare_url(change)
+        return say(style.dim('  no file changes')) if change.diff.empty?
 
-        change.diff.added.each { |path| say "  + #{path}" }
-        change.diff.changed.each { |path| say "  ~ #{path}" }
-        change.diff.removed.each { |path| say "  - #{path}" }
+        show_files(change.diff)
+      end
+
+      def show_files(diff)
+        { added: style.green('+'), changed: style.yellow('~'), removed: style.red('-') }.each do |kind, mark|
+          diff.public_send(kind).each { |path| say "  #{mark} #{path}" }
+        end
       end
 
       def compare_url(change)

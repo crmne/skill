@@ -50,6 +50,7 @@ module Skill
   autoload :Manifest, 'skill/manifest'
   autoload :Session, 'skill/session'
   autoload :Source, 'skill/source'
+  autoload :Style, 'skill/style'
   autoload :Targets, 'skill/targets'
   autoload :Tree, 'skill/tree'
   autoload :Workspace, 'skill/workspace'

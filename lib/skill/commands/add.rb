@@ -46,8 +46,8 @@ module Skill
         Installer.new.install(copies)
         copies.each { |copy| workspace.lock[copy.name] = copy.entry }
         workspace.lock.save
-        copies.each { |copy| say "Installed #{copy.name} into #{copy.labels.join(', ')}" }
-        say "Recorded in #{workspace.display(workspace.lock.path)}."
+        copies.each { |copy| say done("Installed #{style.bold(copy.name)} → #{copy.labels.join(', ')}") }
+        say style.dim("  Recorded in #{workspace.display(workspace.lock.path)}")
       end
 
       def copy(checkout, candidate)
@@ -102,8 +102,8 @@ module Skill
           files = copy.tree.executables
           next if files.empty?
 
-          warn("#{copy.name} has executable files, installed without the executable bit: #{files.join(', ')}. " \
-               'Pass --keep-executable to keep it')
+          count = files.size == 1 ? '1 file' : "#{files.size} files"
+          warn("#{copy.name}: dropped the executable bit from #{count} (use --keep-executable)")
         end
       end
 
@@ -112,8 +112,12 @@ module Skill
         say '  (no skills)' if discovery.candidates.empty?
         discovery.candidates.each do |candidate|
           plugin = candidate.plugin ? " [#{candidate.plugin}]" : ''
-          detail = candidate.valid? ? truncate(candidate.manifest.description) : "INVALID: #{candidate.error}"
-          say "  #{candidate.name}#{plugin}  #{detail}"
+          detail = if candidate.valid?
+                     style.dim(truncate(candidate.manifest.description))
+                   else
+                     style.yellow("INVALID: #{candidate.error}")
+                   end
+          say "  #{style.bold(candidate.name)}#{style.dim(plugin)}  #{detail}"
         end
         discovery.external.each do |plugin|
           say "  [#{plugin['plugin']}] lives in #{plugin['source']}: run `skill add #{plugin['source']}`"
