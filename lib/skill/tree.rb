@@ -48,7 +48,8 @@ module Skill
 
     def self.too_large!(root, limits)
       raise UnsafeError,
-            "#{File.basename(root)} is larger than #{limits.skill_files} files or #{limits.skill_bytes} bytes"
+            "#{File.basename(root)} is larger than #{limits.skill_files} files or #{limits.skill_bytes} bytes. " \
+            'Set SKILL_MAX_SKILL_FILES or SKILL_MAX_SKILL_BYTES higher for a source you trust'
     end
     private_class_method :scan, :too_large!
 

@@ -62,7 +62,7 @@ module Skill
       size = 0
       response.read_body do |chunk|
         size += chunk.bytesize
-        raise NetworkError, "#{response.uri&.host} sent more than #{limit} bytes" if size > limit
+        raise TooLargeError, "#{response.uri&.host} sent more than #{limit} bytes" if size > limit
 
         io ? io.write(chunk) : body << chunk
       end

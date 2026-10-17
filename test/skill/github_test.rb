@@ -57,4 +57,12 @@ class GitHubTest < SkillTest
     refute_empty io.string
     assert_raises(Skill::NotFoundError) { github.download('acme', 'skills', 'f' * 40, StringIO.new) }
   end
+
+  def test_an_archive_over_the_limit_says_how_to_raise_it
+    small = Skill::GitHub.new(http: @http, env: {}, limits: Skill::Limits.new({}, download_bytes: 1))
+    error = assert_raises(Skill::TooLargeError) { small.download('acme', 'skills', @first, StringIO.new) }
+
+    assert_includes error.message, 'acme/skills is larger than 1 bytes'
+    assert_includes error.message, 'SKILL_MAX_DOWNLOAD_BYTES'
+  end
 end

@@ -34,6 +34,9 @@ module Skill
   # Raised when a download fails.
   class NetworkError < Error; end
 
+  # Raised when a download is larger than its limit.
+  class TooLargeError < NetworkError; end
+
   autoload :Agents, 'skill/agents'
   autoload :Archive, 'skill/archive'
   autoload :Boundary, 'skill/boundary'

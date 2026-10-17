@@ -29,7 +29,7 @@ module SkillTestHelpers
     def get(url, limit:, headers: {}, io: nil)
       @requests << [url, headers]
       response = @routes.fetch(url) { Skill::HTTP::Response.new(status: 404, body: '', headers: {}) }
-      raise Skill::NetworkError, "more than #{limit} bytes" if response.body.bytesize > limit
+      raise Skill::TooLargeError, "more than #{limit} bytes" if response.body.bytesize > limit
 
       if io && response.status == 200
         io.write(response.body)

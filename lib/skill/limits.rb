@@ -14,6 +14,12 @@ module Skill
 
     attr_reader(*DEFAULTS.keys)
 
+    # Returns +message+ followed by how to raise the +key+ limit, so a refusal
+    # says what to do about it.
+    def self.exceeded(key, message)
+      "#{message}. Set #{DEFAULTS.fetch(key).first} higher for a source you trust"
+    end
+
     def initialize(env = ENV, **overrides)
       DEFAULTS.each do |key, (variable, default)|
         value = overrides.fetch(key) { env[variable] ? Integer(env[variable], 10) : default }

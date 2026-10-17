@@ -41,7 +41,7 @@ module Skill
           size += chunk.bytesize
           if size > @limits.extract_bytes
             raise UnsafeError,
-                  "The archive expands to more than #{@limits.extract_bytes} bytes"
+                  Limits.exceeded(:extract_bytes, "The archive expands to more than #{@limits.extract_bytes} bytes")
           end
 
           tar.write(chunk)
@@ -79,7 +79,7 @@ module Skill
         state[:files] += 1
         if state[:files] > @limits.extract_files
           raise UnsafeError,
-                "The archive holds more than #{@limits.extract_files} files"
+                Limits.exceeded(:extract_files, "The archive holds more than #{@limits.extract_files} files")
         end
 
         write(File.join(into, *parts), entry)

@@ -54,7 +54,7 @@ module Skill
     # Downloads +commit+ of +owner/repo+ as a gzipped tarball into +io+.
     def download(owner, repo, commit, io)
       url, headers = archive_request(owner, repo, commit)
-      response = @http.get(url, headers: headers, limit: @limits.download_bytes, io: io)
+      response = download_archive(url, headers, io, owner, repo)
       return if response.status == 200
 
       if [404, 422].include?(response.status)
@@ -70,6 +70,13 @@ module Skill
     end
 
     private
+
+    def download_archive(url, headers, io, owner, repo)
+      @http.get(url, headers: headers, limit: @limits.download_bytes, io: io)
+    rescue TooLargeError
+      message = "#{owner}/#{repo} is larger than #{@limits.download_bytes} bytes to download"
+      raise TooLargeError, Limits.exceeded(:download_bytes, message)
+    end
 
     def advertised_refs(owner, repo)
       response = @http.get("https://github.com/#{owner}/#{repo}.git/info/refs?service=git-upload-pack",

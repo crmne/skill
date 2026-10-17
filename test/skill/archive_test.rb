@@ -52,8 +52,11 @@ class ArchiveTest < SkillTest
   def test_limits
     archive = tarball('repo', { 'a' => 'a' * 2000, 'b' => 'b' })
 
-    assert_raises(Skill::UnsafeError) { extract(archive, limits: Skill::Limits.new({}, extract_bytes: 1024)) }
-    assert_raises(Skill::UnsafeError) { extract(archive, limits: Skill::Limits.new({}, extract_files: 1)) }
+    bytes = assert_raises(Skill::UnsafeError) { extract(archive, limits: Skill::Limits.new({}, extract_bytes: 1024)) }
+    files = assert_raises(Skill::UnsafeError) { extract(archive, limits: Skill::Limits.new({}, extract_files: 1)) }
+
+    assert_includes bytes.message, 'SKILL_MAX_EXTRACT_BYTES'
+    assert_includes files.message, 'SKILL_MAX_EXTRACT_FILES'
   end
 
   def test_refuses_what_is_not_gzip
