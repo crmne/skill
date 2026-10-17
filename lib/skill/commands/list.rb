@@ -8,7 +8,9 @@ module Skill
       def run
         parse('list [options]') { |opts| opts.on('--json', 'Print JSON') { options[:json] = true } }
         rows = workspace.lock.skills.map { |name, entry| [name, entry, workspace.status(name, entry)] }
-        rows.select! { |_name, entry, _status| workspace.folders(entry).intersect?(chosen_folders) } if chosen_folders
+        if chosen_folders
+          rows.select! { |_name, entry, _status| workspace.recorded_folders(entry).intersect?(chosen_folders) }
+        end
         return json(rows) if options[:json]
 
         installed(rows)

@@ -57,14 +57,33 @@ module Skill
       Source.parse(entry['source'], root: root, ref: entry['ref'])
     end
 
-    # Returns the absolute target folders a lockfile +entry+ records.
-    def folders(entry)
-      entry['targets'].map { |path| targets.expand(path) }
+    # Returns the absolute target folders a lockfile +entry+ records,
+    # without checking where they lead.
+    def recorded_folders(entry)
+      Array(entry['targets']).map { |path| targets.expand(path) }
     end
 
-    # Returns the target folders for +agents+ and +dirs+, or the detected ones.
+    # Returns the absolute target folders a lockfile +entry+ records. Raises
+    # UnsafeError when one leads outside the project, or with +global+
+    # outside the home folder.
+    def folders(entry)
+      recorded_folders(entry).each do |folder|
+        next if targets.boundary.include?(folder)
+
+        raise UnsafeError, "#{display(lock.path)} installs into #{display(folder)}, outside " \
+                           "#{targets.boundary.name}. Fix or delete that entry"
+      end
+    end
+
+    # Returns the target folders for +agents+ and +dirs+, or the detected
+    # ones. Raises UnsafeError when one leads outside the project, or with
+    # +global+ outside the home folder.
     def resolve(agents: [], dirs: [])
-      targets.resolve(agents: agents, dirs: dirs).map(&:path)
+      targets.resolve(agents: agents, dirs: dirs).map(&:path).each do |folder|
+        next if targets.boundary.include?(folder)
+
+        raise UnsafeError, "#{display(folder)} leads outside #{targets.boundary.name}. Skills install only inside it"
+      end
     end
 
     # Returns whether the skill folder at +path+ still holds what +entry+
@@ -100,9 +119,13 @@ module Skill
       ensure_unedited(name, folder, false)
     end
 
-    # Returns the state of an installed skill: ok, edited, missing, or
-    # partly missing.
+    # Returns the state of an installed skill: ok, edited, missing, partly
+    # missing, or outside the project (or home folder) when the lockfile
+    # points elsewhere.
     def status(name, entry)
+      boundary = targets.boundary
+      return "outside #{boundary.name}" unless recorded_folders(entry).all? { |folder| boundary.include?(folder) }
+
       paths = folders(entry).map { |folder| Installer.destination(folder, name) }
       present = paths.select { |path| File.directory?(path) }
       return 'missing' if present.empty?

@@ -84,6 +84,18 @@ module Skill
       File.expand_path(path.to_s.sub(%r{\A~(?=/|\z)}, home), base)
     end
 
+    # Returns the Boundary skills install inside: the project, or with
+    # +global+ the home folder and any global agent folder the environment
+    # moved elsewhere.
+    def boundary
+      @boundary ||= if global?
+                      folders = Agents.all.filter_map { |agent| Agents.global_path(agent, env: env, home: home) }
+                      Boundary.new([home, *folders], name: 'your home folder')
+                    else
+                      Boundary.new([root], name: 'the project')
+                    end
+    end
+
     private
 
     def base

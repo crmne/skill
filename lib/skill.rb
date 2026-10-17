@@ -36,6 +36,7 @@ module Skill
 
   autoload :Agents, 'skill/agents'
   autoload :Archive, 'skill/archive'
+  autoload :Boundary, 'skill/boundary'
   autoload :CLI, 'skill/cli'
   autoload :Commands, 'skill/commands'
   autoload :Directory, 'skill/directory'

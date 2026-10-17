@@ -27,6 +27,7 @@ Plain Ruby (>= 3.1), no runtime dependencies: Net::HTTP, `Gem::Package::TarReade
 | `lib/skill/tree.rb` | A skill folder's files, digest, and diff |
 | `lib/skill/installer.rb` | Staged copies and atomic swaps |
 | `lib/skill/agents.rb`, `targets.rb` | Where each agent reads skills, and which folders a command targets |
+| `lib/skill/boundary.rb` | The folders a command may write into, checked with links and `..` resolved |
 | `lib/skill/lockfile.rb` | `skills.lock` |
 | `lib/skill/directory.rb` | skills.sh search |
 | `test/` | Minitest. `FakeHTTP` and `FakeRepo` in `test/test_helper.rb` stand in for GitHub; no test touches the network |
@@ -41,6 +42,7 @@ Plain Ruby (>= 3.1), no runtime dependencies: Net::HTTP, `Gem::Package::TarReade
 - **Never follow a moving ref silently.** `update` shows the commit range and the files that change, and applies only after `--yes` or a yes at a terminal. A commit pin never moves; a moved tag is called out.
 - **Never overwrite what the gem does not own.** A folder not in the lockfile, or edited since it was installed (its digest differs), is replaced only with `--force`.
 - **Refuse, do not repair.** An archive path that is absolute, holds `..`, or leaves its folder fails the whole download. Links are never written or followed, and a skill holding one is refused. Downloads, extraction, and each skill have size and file-count limits (`Skill::Limits`).
+- **Write only inside the boundary.** `add`, `update`, and `remove` touch folders inside the project, or with `--global` inside the home folder and the global agent folders the environment names. Every target, from the lockfile, `--dir`, or detection, goes through `Boundary` (links and `..` resolved) and one outside fails the command before anything changes.
 - **Executable bits are dropped** unless `--keep-executable`, with a warning naming the files.
 - **Every install is atomic.** Copies are staged beside their targets and swapped in by rename once all are ready; a failure leaves the previous state.
 - **Secrets stay secret.** `GITHUB_TOKEN`/`GH_TOKEN` go only to github.com, api.github.com, and codeload.github.com, never into output, errors, or the lockfile.
