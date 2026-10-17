@@ -53,7 +53,11 @@ module Skill
     # Returns the Workspace for the project, or the home folder with
     # +global+, or with +global+ +nil+ whichever +cwd+ is in.
     def workspace(global: nil)
-      @workspace ||= Workspace.open(cwd: cwd, home: home, env: env, global: global, limits: limits)
+      @workspace ||= Workspace.open(cwd: cwd, home: home, env: env, global: global, limits: limits).tap do |space|
+        if space.moved_lock
+          warn("Moved the global lockfile from #{space.display(space.moved_lock)} to #{space.display(space.lock.path)}")
+        end
+      end
     end
 
     def limits

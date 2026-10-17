@@ -121,10 +121,10 @@ class ConfinementTest < SkillTest
   end
 
   def test_global_targets_stay_in_the_home_folder
-    env = { 'XDG_STATE_HOME' => File.join(@home, 'state') }
+    env = { 'XDG_CONFIG_HOME' => File.join(@home, 'config') }
     FileUtils.mkdir_p(File.join(@home, '.claude'))
     skill('add', 'acme/skills@pdf', '--global', env: env)
-    point_lock_at(@outside, path: File.join(@home, 'state/skill/skills.lock'))
+    point_lock_at(@outside, path: File.join(@home, 'config/skill/skills.lock'))
 
     status, _out, err = skill('remove', 'pdf', '--global', '--force', env: env)
 
@@ -136,7 +136,7 @@ class ConfinementTest < SkillTest
   def test_global_allows_an_agent_folder_the_environment_moved
     config = File.join(@tmp, 'claude-config')
     FileUtils.mkdir_p(config)
-    env = { 'XDG_STATE_HOME' => File.join(@home, 'state'), 'CLAUDE_CONFIG_DIR' => config }
+    env = { 'CLAUDE_CONFIG_DIR' => config }
 
     status, _out, err = skill('add', 'acme/skills@pdf', '--global', '--agent', 'claude', env: env)
 

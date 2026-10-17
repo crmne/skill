@@ -68,9 +68,24 @@ class LockfileTest < SkillTest
   end
 
   def test_global_path
-    assert_equal '/state/skill/skills.lock',
-                 Skill::Lockfile.global_path(env: { 'XDG_STATE_HOME' => '/state' }, home: '/h')
-    assert_equal '/h/.local/state/skill/skills.lock', Skill::Lockfile.global_path(env: {}, home: '/h')
+    assert_equal '/config/skill/skills.lock',
+                 Skill::Lockfile.global_path(env: { 'XDG_CONFIG_HOME' => '/config' }, home: '/h')
+    assert_equal '/h/.config/skill/skills.lock', Skill::Lockfile.global_path(env: {}, home: '/h')
+    assert_equal '/h/.local/state/skill/skills.lock', Skill::Lockfile.legacy_global_path(env: {}, home: '/h')
+  end
+
+  def test_migrate_global_keeps_a_lockfile_already_in_place
+    env = {}
+    old = Skill::Lockfile.legacy_global_path(env: env, home: @home)
+    current = Skill::Lockfile.global_path(env: env, home: @home)
+
+    assert_nil Skill::Lockfile.migrate_global(env: env, home: @home)
+    write_tree(File.dirname(old), 'skills.lock' => 'old')
+    write_tree(File.dirname(current), 'skills.lock' => 'current')
+
+    assert_nil Skill::Lockfile.migrate_global(env: env, home: @home)
+    assert_equal 'current', File.read(current)
+    assert_equal 'old', File.read(old)
   end
 end
 

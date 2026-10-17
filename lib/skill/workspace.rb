@@ -8,7 +8,7 @@ module Skill
     ROOT_MARKERS = %w[skills.lock Gemfile gems.rb .git package.json].freeze
     AGENT_MARKERS = %w[.agents .claude .codex .cursor .gemini .windsurf AGENTS.md CLAUDE.md GEMINI.md].freeze
 
-    attr_reader :root, :targets, :lock
+    attr_reader :root, :targets, :lock, :moved_lock
 
     # Opens the project around +cwd+, or the home folder with +global+.
     # With +global+ +nil+, uses the home folder when +cwd+ is in no
@@ -17,9 +17,10 @@ module Skill
       project = project_root(cwd, home)
       global = project.nil? if global.nil?
       root = global ? home : project || cwd
+      moved = Lockfile.migrate_global(env: env, home: home) if global
       lock = global ? Lockfile.global_path(env: env, home: home) : File.join(root, Lockfile::NAME)
       new(root: root, targets: Targets.new(root: root, home: home, env: env, global: global),
-          lock: Lockfile.new(lock), limits: limits)
+          lock: Lockfile.new(lock), limits: limits, moved_lock: moved)
     end
 
     # Returns the nearest folder from +cwd+ up holding a lockfile, a
@@ -47,7 +48,10 @@ module Skill
       targets.global?
     end
 
-    def initialize(root:, targets:, lock:, limits:)
+    # +moved_lock+ is where the global lockfile was before this run moved
+    # it, if it did.
+    def initialize(root:, targets:, lock:, limits:, moved_lock: nil)
+      @moved_lock = moved_lock
       @root = root
       @targets = targets
       @lock = lock

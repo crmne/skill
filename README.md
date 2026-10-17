@@ -134,7 +134,7 @@ skill add anthropics/skills@pdf
 
 ```
 ✓ Installed pdf → ~/.claude/skills/pdf (global)
-  Recorded in ~/.local/state/skill/skills.lock
+  Recorded in ~/.config/skill/skills.lock
 ```
 
 A project is the nearest folder from where you run `skill` up that holds a `skills.lock`, a `Gemfile`, a `gems.rb`, a `.git`, or a `package.json`, or else an agent's folder or instructions (`.claude`, `.agents`, `.cursor`, `AGENTS.md`, `CLAUDE.md`, and the like). Your home folder never counts, since agents keep their global folders there. `list`, `update`, and `remove` decide the same way.
@@ -175,7 +175,9 @@ chat = RubyLLM.chat.with_skills(:pdf)
 }
 ```
 
-Entries are sorted and carry no timestamps, so two branches adding different skills merge cleanly. The global lockfile lives in `~/.local/state/skill/skills.lock` (or `$XDG_STATE_HOME/skill`).
+Entries are sorted and carry no timestamps, so two branches adding different skills merge cleanly.
+
+The global lockfile lives in `~/.config/skill/skills.lock` (or `$XDG_CONFIG_HOME/skill`), so you can keep it with your dotfiles, like a Brewfile. skill 0.1 kept it in `~/.local/state/skill`; the first command that reads it moves it and says so.
 
 ## Updating
 
@@ -257,8 +259,8 @@ A skill's instructions steer a model and its scripts run with whatever your sand
 | Variable | Use |
 | --- | --- |
 | `GITHUB_TOKEN`, `GH_TOKEN` | Read private repositories |
-| `XDG_CONFIG_HOME`, `CLAUDE_CONFIG_DIR`, `CODEX_HOME` | Where agents keep their global folders |
-| `XDG_STATE_HOME` | Where the global lockfile lives |
+| `CLAUDE_CONFIG_DIR`, `CODEX_HOME` | Where those agents keep their global folders |
+| `XDG_CONFIG_HOME` | Where the global lockfile lives, and where some agents keep their global folders |
 | `INSTALL_INTERNAL_SKILLS` | Include skills whose front matter sets `metadata.internal: true` in `--all` |
 | `SKILLS_API_URL` | Another server with the skills.sh search endpoint |
 | `SKILL_MAX_*` | The limits above |

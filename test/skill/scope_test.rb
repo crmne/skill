@@ -7,8 +7,8 @@ class ScopeTest < SkillTest
     super
     FakeRepo.new(@http, 'acme', 'skills').commit({ 'skills/pdf/SKILL.md' => skill_md('pdf') })
     FileUtils.mkdir_p(File.join(@home, '.claude'))
-    @env = { 'XDG_STATE_HOME' => File.join(@home, '.local/state') }
-    @global_lock = File.join(@home, '.local/state/skill/skills.lock')
+    @env = {}
+    @global_lock = File.join(@home, '.config/skill/skills.lock')
   end
 
   def folder(path)
@@ -21,7 +21,7 @@ class ScopeTest < SkillTest
     status, out, err = skill('add', 'acme/skills@pdf', env: @env, cwd: downloads)
 
     assert_equal 0, status, err
-    recorded = "  Recorded in ~/.local/state/skill/skills.lock\n"
+    recorded = "  Recorded in ~/.config/skill/skills.lock\n"
 
     assert_equal "✓ Installed pdf → ~/.claude/skills/pdf (global)\n#{recorded}", out
     assert_path_exists File.join(@home, '.claude/skills/pdf/SKILL.md')

@@ -8,7 +8,8 @@ module Skill
   # fetch it again and +remove+ knows what it owns. Entries are sorted by
   # name and carry no timestamps, so two branches adding different skills
   # merge cleanly. A project's lockfile sits at its root, to be committed;
-  # the global one in +$XDG_STATE_HOME/skill+ (+~/.local/state/skill+).
+  # the global one in +$XDG_CONFIG_HOME/skill+ (+~/.config/skill+), beside
+  # other settings people keep with their dotfiles.
   #
   #   {
   #     "version": 1,
@@ -35,9 +36,35 @@ module Skill
 
     # Returns the global lockfile's path.
     def self.global_path(env:, home:)
-      state = env['XDG_STATE_HOME'].to_s.strip
-      File.join(state.empty? ? File.join(home, '.local/state') : state, 'skill', NAME)
+      File.join(xdg(env, 'XDG_CONFIG_HOME', File.join(home, '.config')), 'skill', NAME)
     end
+
+    # Returns where skill 0.1 kept the global lockfile.
+    def self.legacy_global_path(env:, home:)
+      File.join(xdg(env, 'XDG_STATE_HOME', File.join(home, '.local/state')), 'skill', NAME)
+    end
+
+    # Moves the global lockfile from where skill 0.1 kept it, when only that
+    # one exists. Returns the old path when it moved it, else +nil+.
+    def self.migrate_global(env:, home:)
+      old = legacy_global_path(env: env, home: home)
+      current = global_path(env: env, home: home)
+      return unless File.file?(old) && !File.exist?(current)
+
+      FileUtils.mkdir_p(File.dirname(current))
+      File.rename(old, current)
+      old
+    rescue SystemCallError
+      FileUtils.cp(old, current)
+      FileUtils.rm_f(old)
+      old
+    end
+
+    def self.xdg(env, variable, default)
+      value = env[variable].to_s.strip
+      value.empty? ? default : value
+    end
+    private_class_method :xdg
 
     def initialize(path)
       @path = path

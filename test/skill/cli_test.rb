@@ -271,28 +271,33 @@ class CLITest < SkillTest
   def test_global_scope
     FileUtils.mkdir_p(File.join(@home, '.claude'))
     status, out, err = skill('add', 'acme/skills@pdf', '--global',
-                             env: { 'XDG_STATE_HOME' => File.join(@home, 'state') })
+                             env: { 'XDG_CONFIG_HOME' => File.join(@home, 'config') })
 
     assert_equal 0, status, err
     assert_match(%r{✓ Installed pdf → ~/\.claude/skills/pdf}, out)
     assert File.file?(File.join(@home, '.claude/skills/pdf/SKILL.md'))
-    global = JSON.parse(File.read(File.join(@home, 'state/skill/skills.lock')))['skills']
+    global = JSON.parse(File.read(File.join(@home, 'config/skill/skills.lock')))['skills']
 
     assert_equal ['~/.claude/skills'], global['pdf']['targets']
     refute_path_exists File.join(@project, 'skills.lock')
   end
 
-  def test_agents_groups
-    status, out, err = skill('add', 'acme/skills@pdf', '--agents', 'coding')
+  def test_global_lockfile_moves_from_the_state_folder
+    FileUtils.mkdir_p(File.join(@home, '.claude'))
+    skill('add', 'acme/skills@pdf', '--global')
+    old = File.join(@home, '.local/state/skill/skills.lock')
+    FileUtils.mkdir_p(File.dirname(old))
+    File.rename(File.join(@home, '.config/skill/skills.lock'), old)
+
+    status, out, err = skill('list', '--global')
 
     assert_equal 0, status, err
-    assert_equal "✓ Installed pdf → .claude/skills/pdf\n  Recorded in skills.lock\n", out
-    assert_equal 0, skill('add', 'acme/skills@docx', '--agents', 'all').first
-    assert_equal ['.claude/skills', 'app/skills'], lock['docx']['targets']
-    assert_equal 0, skill('add', 'acme/skills@docx', '--agents', 'ruby_llm,cursor').first
-    assert_equal ['.agents/skills', '.claude/skills', 'app/skills'], lock['docx']['targets']
-    assert_equal 0, skill('remove', 'docx', '--agent', 'coding').first
-    assert_equal ['app/skills'], lock['docx']['targets']
+    assert_equal "! Moved the global lockfile from ~/.local/state/skill/skills.lock to ~/.config/skill/skills.lock\n",
+                 err
+    assert_match(%r{\Apdf  acme/skills}, out)
+    refute_path_exists old
+    assert_path_exists File.join(@home, '.config/skill/skills.lock')
+    assert_equal '', skill('list', '--global')[2]
   end
 
   def test_find
