@@ -300,6 +300,82 @@ class CLITest < SkillTest
     assert_equal '', skill('list', '--global')[2]
   end
 
+  def test_agents_groups
+    status, out, err = skill('add', 'acme/skills@pdf', '--agents', 'coding')
+
+    assert_equal 0, status, err
+    assert_equal "✓ Installed pdf → .claude/skills/pdf\n  Recorded in skills.lock\n", out
+    assert_equal 0, skill('add', 'acme/skills@docx', '--agents', 'all').first
+    assert_equal ['.claude/skills', 'app/skills'], lock['docx']['targets']
+    assert_equal 0, skill('add', 'acme/skills@docx', '--agents', 'ruby_llm,cursor').first
+    assert_equal ['.agents/skills', '.claude/skills', 'app/skills'], lock['docx']['targets']
+    assert_equal 0, skill('remove', 'docx', '--agent', 'coding').first
+    assert_equal ['app/skills'], lock['docx']['targets']
+  end
+
+  def test_install_restores_the_lockfile_at_its_commits
+    skill('add', 'acme/skills@pdf', '--keep-executable')
+    skill('add', 'acme/skills@docx', '--agents', 'claude')
+    @repo.commit(@files.merge('skills/pdf/SKILL.md' => skill_md('pdf', 'Newer')))
+    FileUtils.rm_rf(File.join(@project, 'app/skills'))
+    FileUtils.rm_rf(installed('.claude/skills', 'docx'))
+
+    status, out, err = skill('install')
+
+    assert_equal 0, status, err
+    assert_equal "✓ Installed docx → .claude/skills/docx\n✓ Installed pdf → app/skills/pdf\n", out
+    assert_equal File.read(File.join(installed('.claude/skills'), 'SKILL.md')),
+                 File.read(File.join(installed('app/skills'), 'SKILL.md'))
+    assert File.executable?(File.join(installed('app/skills'), 'scripts/fill.py'))
+    assert_equal @first, lock['pdf']['commit']
+
+    status, out, = skill('install')
+
+    assert_equal 0, status
+    assert_equal "· docx already installed\n· pdf already installed\n", out
+  end
+
+  def test_install_refuses_edits_and_a_digest_that_does_not_match
+    skill('add', 'acme/skills@pdf')
+    File.write(File.join(installed('app/skills'), 'SKILL.md'), 'mine')
+
+    assert_equal 1, skill('install').first
+    assert_equal 'mine', File.read(File.join(installed('app/skills'), 'SKILL.md'))
+    assert_equal 0, skill('install', '--force').first
+    refute_equal 'mine', File.read(File.join(installed('app/skills'), 'SKILL.md'))
+
+    data = JSON.parse(File.read(File.join(@project, 'skills.lock')))
+    data['skills']['pdf']['digest'] = "sha256-#{'0' * 64}"
+    File.write(File.join(@project, 'skills.lock'), JSON.generate(data))
+    FileUtils.rm_rf([installed('app/skills'), installed('.claude/skills')])
+    status, _out, err = skill('install')
+
+    assert_equal 1, status
+    assert_match(/does not match the digest skills\.lock records/, err)
+    refute_path_exists installed('app/skills')
+  end
+
+  def test_install_globally_creates_missing_folders
+    skill('add', 'acme/skills@pdf', '--global', '--agents', 'claude')
+    FileUtils.rm_rf(File.join(@home, '.claude'))
+
+    status, out, err = skill('install', '-g')
+
+    assert_equal 0, status, err
+    assert_equal "✓ Installed pdf → ~/.claude/skills/pdf\n", out
+    assert File.file?(File.join(@home, '.claude/skills/pdf/SKILL.md'))
+  end
+
+  def test_install_with_a_source_adds_it
+    status, out, err = skill('install', 'acme/skills@pdf', '--agents', 'claude')
+
+    assert_equal 0, status, err
+    assert_match(%r{✓ Installed pdf → \.claude/skills/pdf}, out)
+    assert_equal 'No skills recorded in skills.lock.', skill('install', cwd: File.join(@tmp, 'empty').tap do |dir|
+      FileUtils.mkdir_p(File.join(dir, '.git'))
+    end)[1].strip
+  end
+
   def test_find
     @http.route('https://skills.sh/api/search?q=pdf+tools&limit=20',
                 body: JSON.generate(skills: [

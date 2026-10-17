@@ -15,7 +15,7 @@ Plain Ruby (>= 3.1), no runtime dependencies: Net::HTTP, `Gem::Package::TarReade
 | `exe/skill` | The executable `gem exec` runs |
 | `lib/skill.rb` | The `Skill` module, its errors, and autoloads |
 | `lib/skill/cli.rb` | Dispatches subcommands, maps errors to exit statuses (1 failure, 2 usage) |
-| `lib/skill/commands/` | One class per subcommand (`Add`, `Update`, `Remove`, `List`, `Find`, `Agents`) and `Selection`, which picks the skills `add` installs |
+| `lib/skill/commands/` | One class per subcommand (`Add`, `Install`, `Update`, `Remove`, `List`, `Find`, `Agents`) and `Selection`, which picks the skills `add` installs |
 | `lib/skill/session.rb` | One run: streams, environment, prompts, downloads, cleanup |
 | `lib/skill/style.rb` | Color for a terminal, off for pipes, `NO_COLOR`, and `TERM=dumb` |
 | `lib/skill/workspace.rb` | The project or home folder: its `Targets` and `Lockfile`, and the edited/not-ours checks |
@@ -39,7 +39,7 @@ Plain Ruby (>= 3.1), no runtime dependencies: Net::HTTP, `Gem::Package::TarReade
 - **No runtime dependencies.** Anything the standard library does not do, the gem does not do. Adding a dependency is a maintainer decision.
 - **Ruby 3.1.** No `Data`, no `it`, no syntax newer than 3.1. CI runs 3.1 through 4.0.
 - **Fast start.** `skill --version` must not load more than `lib/skill.rb`, the version, and the CLI. Require heavy libraries (`net/http`, `rubygems/package`, `yaml`) only in the files that use them, and reach classes through `autoload`.
-- **The network only in `add`, `update`, and `find`.** Nothing the gem installs downloads anything later, and the gem never runs code from a skill.
+- **The network only in `add`, `install`, `update`, and `find`.** Nothing the gem installs downloads anything later, and the gem never runs code from a skill.
 - **Never follow a moving ref silently.** `update` shows the commit range and the files that change, and applies only after `--yes` or a yes at a terminal. A commit pin never moves; a moved tag is called out.
 - **Never overwrite what the gem does not own.** A folder not in the lockfile, or edited since it was installed (its digest differs), is replaced only with `--force`.
 - **Refuse, do not repair.** An archive path that is absolute, holds `..`, or leaves its folder fails the whole download. Links are never written or followed, and a skill holding one is refused. Downloads, extraction, and each skill have size and file-count limits (`Skill::Limits`).

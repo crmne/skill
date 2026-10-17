@@ -179,6 +179,25 @@ Entries are sorted and carry no timestamps, so two branches adding different ski
 
 The global lockfile lives in `~/.config/skill/skills.lock` (or `$XDG_CONFIG_HOME/skill`), so you can keep it with your dotfiles, like a Brewfile. skill 0.1 kept it in `~/.local/state/skill`; the first command that reads it moves it and says so.
 
+## Installing from the lockfile
+
+`install` installs what `skills.lock` records, the way `bundle install` restores a `Gemfile.lock`: each skill at its recorded commit, into its recorded folders, creating any that are missing.
+
+```sh
+git clone https://github.com/acme/app && cd app
+skill install           # the project's skills
+skill install --global  # yours, on a new computer, from ~/.config/skill/skills.lock
+```
+
+```
+✓ Installed pdf → app/skills/pdf, .claude/skills/pdf
+· xlsx already installed
+```
+
+A skill already in place with its recorded digest is left alone. Each copy it downloads must match that digest, or nothing is installed. A copy you edited is replaced only with `--force`. `install` never moves a skill to a newer commit: that is `update`'s job.
+
+With a source, `skill install owner/repo` works like `skill add`, as `npx skills install` does.
+
 ## Updating
 
 ```sh
@@ -251,7 +270,7 @@ A skill's instructions steer a model and its scripts run with whatever your sand
 * **Installs are atomic.** Copies are built beside their folders and swapped in once all are ready. A failure leaves everything as it was.
 * **Skills stay where they belong.** `add`, `update`, and `remove` write only inside the project, or when global inside your home folder (and any agent folder you moved elsewhere with its environment variable). Folders are checked with `..` and symbolic links resolved, so a `skills.lock` entry, a `--dir`, or a linked folder that leads elsewhere is refused with an error naming it, and nothing changes.
 * **Your edits are yours.** A skill edited since it was installed, or a folder `skill` did not install, is replaced or removed only with `--force`.
-* **No downloads at run time.** `skill` reaches the network only in `add`, `update`, and `find`. What it installs is plain files in your project.
+* **No downloads at run time.** `skill` reaches the network only in `add`, `install`, `update`, and `find`. What it installs is plain files in your project.
 * **GitHub without its API.** Refs come from git's own HTTP endpoint and files from one archive of the exact commit, so there is no rate limit and no git needed. A token, when set, goes only to GitHub.
 
 ## Environment

@@ -7,6 +7,7 @@ module Skill
     autoload :Agents, 'skill/commands/agents'
     autoload :Command, 'skill/commands/command'
     autoload :Find, 'skill/commands/find'
+    autoload :Install, 'skill/commands/install'
     autoload :List, 'skill/commands/list'
     autoload :Remove, 'skill/commands/remove'
     autoload :Selection, 'skill/commands/selection'

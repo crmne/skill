@@ -6,7 +6,8 @@ module Skill
   # The +skill+ command line.
   class CLI
     COMMANDS = {
-      'add' => :Add, 'install' => :Add, 'a' => :Add, 'i' => :Add,
+      'add' => :Add, 'a' => :Add,
+      'install' => :Install, 'i' => :Install,
       'list' => :List, 'ls' => :List,
       'update' => :Update, 'upgrade' => :Update, 'up' => :Update,
       'remove' => :Remove, 'rm' => :Remove, 'uninstall' => :Remove,
@@ -19,6 +20,7 @@ module Skill
 
       Commands:
         add <source>       Install skills from GitHub or a local folder
+        install            Install what skills.lock records, at its commits
         list               List installed skills
         update [names]     Update installed skills, showing what changes first
         remove <names>     Remove installed skills
